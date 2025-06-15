@@ -1,0 +1,13 @@
+{
+  "id": "org.pelisenhd",
+  "version": "1.0.0",
+  "name": "PelisenHD Latino",
+  "description": "Latino movies from PelisenHD.org",
+  "resources": ["catalog", "stream"],
+  "types": ["movie"],
+  "catalogs": [{
+    "type": "movie",
+    "id": "main",
+    "name": "PelisenHD Movies"
+  }]
+}
