@@ -17,14 +17,13 @@ app.get('/:resource/:type/:id?.json', (req, res) => {
   });
 });
 
-// ✅ This part is essential for Vercel
-module.exports = app;
+// ✅ This lets Vercel treat this as a serverless function
+module.exports = (req, res) => app(req, res);
 
+// ✅ Optional: allows local testing
 if (require.main === module) {
   const PORT = process.env.PORT || 7000;
   app.listen(PORT, () => {
     console.log(`PelisenHD Addon running at http://localhost:${PORT}`);
   });
 }
-
-
