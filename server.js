@@ -2,12 +2,14 @@ const express = require('express');
 const addonInterface = require('./index'); // index.js must export the addon
 const app = express();
 
+// Manifest route for Stremio
 app.get('/manifest.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(addonInterface.manifest));
 });
 
-app.get('/:resource/:type/:id.json', (req, res) => {
+// Stream/catalog route for Stremio
+app.get('/:resource/:type/:id?.json', (req, res) => {
   addonInterface.get(req.params).then(resp => {
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(resp));
@@ -17,13 +19,5 @@ app.get('/:resource/:type/:id.json', (req, res) => {
   });
 });
 
-// ✅ This lets Vercel treat this as a serverless function
+// Required for Vercel serverless function
 module.exports = (req, res) => app(req, res);
-
-// ✅ Optional: allows local testing
-if (require.main === module) {
-  const PORT = process.env.PORT || 7000;
-  app.listen(PORT, () => {
-    console.log(`PelisenHD Addon running at http://localhost:${PORT}`);
-  });
-}

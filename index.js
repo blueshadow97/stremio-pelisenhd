@@ -1,38 +1,44 @@
-const { addonBuilder } = require("stremio-addon-sdk");
-const axios = require("axios");
-const cheerio = require("cheerio");
+const { addonBuilder } = require('stremio-addon-sdk');
 
-const manifest = require("./manifest.json");
+const manifest = {
+  id: 'org.pelisenhd',
+  version: '1.0.0',
+  name: 'PelisenHD Latino',
+  description: 'Latino movies from PelisenHD.org',
+  resources: ['catalog', 'stream'],
+  types: ['movie'],
+  catalogs: [
+    {
+      type: 'movie',
+      id: 'main',
+      name: 'PelisenHD Movies'
+    }
+  ]
+};
+
 const builder = new addonBuilder(manifest);
 
-builder.defineCatalogHandler(async () => {
-  const res = await axios.get("https://pelisenhd.org/peliculas/");
-  const $ = cheerio.load(res.data);
-
-  const metas = [];
-
-  $(".TPostMv article").each((_, el) => {
-    const title = $(el).find(".Title").text().trim();
-    const poster = $(el).find("img").attr("data-src");
-    const href = $(el).find("a").attr("href");
-
-    metas.push({
-      id: href,
-      name: title,
-      type: "movie",
-      poster
-    });
+// Dummy catalog response
+builder.defineCatalogHandler(() => {
+  return Promise.resolve({
+    metas: [
+      {
+        id: 'dummy1',
+        name: 'Example Movie 1',
+        type: 'movie',
+        poster: 'https://via.placeholder.com/200x300?text=PelisenHD'
+      }
+    ]
   });
-
-  return { metas };
 });
 
+// Dummy stream response
 builder.defineStreamHandler(({ id }) => {
   return Promise.resolve({
     streams: [
       {
-        title: "PelisenHD (Open in browser)",
-        externalUrl: id
+        title: 'Latino Stream',
+        url: 'https://example.com/stream.mp4'
       }
     ]
   });
