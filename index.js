@@ -1,3 +1,4 @@
+// index.js
 const { addonBuilder } = require("stremio-addon-sdk");
 const axios = require("axios");
 const cheerio = require("cheerio");
@@ -7,8 +8,8 @@ const manifest = {
     version: "1.0.0",
     name: "PelisenHD Español",
     description: "Películas y series en español latino desde pelisenhd.org",
-    types: ["movie", "series"],
     resources: ["catalog", "stream"],
+    types: ["movie", "series"],
     catalogs: [
         {
             type: "movie",
@@ -26,49 +27,46 @@ const manifest = {
 
 const builder = new addonBuilder(manifest);
 
-// Helper: scrape PelisenHD
-async function scrape(type) {
-    const url = type === "movie" ? "https://pelisenhd.org/peliculas/" : "https://pelisenhd.org/series/";
+const scrapePelisenCatalog = async (type) => {
+    const url = type === 'movie' ? 'https://pelisenhd.org/peliculas/' : 'https://pelisenhd.org/series/';
     const { data } = await axios.get(url);
     const $ = cheerio.load(data);
-    const metas = [];
+    const items = [];
 
-    $(".TPost").each((_, el) => {
-        const name = $(el).find(".Title").text().trim();
+    $('.MovieList .TPost').each((i, el) => {
+        const title = $(el).find(".Title").text().trim();
         const poster = $(el).find("img").attr("src");
-        const link = $(el).find("a").attr("href");
-        if (name && poster && link) {
-            metas.push({
-                id: "pelisen:" + encodeURIComponent(link),
-                name,
-                poster,
-                type
-            });
-        }
+        const href = $(el).find("a").attr("href");
+        const id = "pelisen:" + encodeURIComponent(href);
+
+        items.push({
+            id,
+            name: title,
+            poster,
+            type
+        });
     });
 
-    return metas;
-}
+    return items;
+};
 
-// Catalog handler
 builder.defineCatalogHandler(async ({ type, id }) => {
     if (id !== `pelisen-${type}`) return { metas: [] };
-    const metas = await scrape(type);
+    const metas = await scrapePelisenCatalog(type);
     return { metas };
 });
 
-// Stream handler
-builder.defineStreamHandler(async ({ id }) => {
+builder.defineStreamHandler(async ({ type, id }) => {
     if (!id.startsWith("pelisen:")) return { streams: [] };
-    const url = decodeURIComponent(id.replace("pelisen:", ""));
+    const decodedUrl = decodeURIComponent(id.replace("pelisen:", ""));
     try {
-        const { data } = await axios.get(url);
+        const { data } = await axios.get(decodedUrl);
         const $ = cheerio.load(data);
         const streams = [];
 
-        $("iframe").each((i, el) => {
-            const src = $(el).attr("src");
-            if (src?.startsWith("https://")) {
+        $('iframe').each((i, el) => {
+            const src = $(el).attr('src');
+            if (src && src.startsWith('https://')) {
                 streams.push({
                     title: `Servidor ${i + 1}`,
                     url: src
@@ -78,10 +76,9 @@ builder.defineStreamHandler(async ({ id }) => {
 
         return { streams };
     } catch (err) {
-        console.error("Stream scrape error:", err.message);
+        console.error("Error scraping stream:", err.message);
         return { streams: [] };
     }
 });
 
-// 🚀 Final export for Stremio
 module.exports = builder.getInterface();
