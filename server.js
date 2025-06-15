@@ -19,10 +19,10 @@ app.get('/:resource/:type/:id?.json', (req, res) => {
   });
 });
 
-// ✅ This part is for Vercel deployment
-module.exports = app;
+// ✅ THIS is what Vercel expects
+module.exports = (req, res) => app(req, res);
 
-// ✅ This part is for local development (localhost:7000)
+// ✅ For local testing only
 if (require.main === module) {
   const PORT = process.env.PORT || 7000;
   app.listen(PORT, () => {
