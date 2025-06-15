@@ -7,7 +7,7 @@ app.get('/manifest.json', (req, res) => {
   res.end(JSON.stringify(addonInterface.manifest));
 });
 
-app.get('/:resource/:type/:id?.json', (req, res) => {
+app.get('/:resource/:type/:id.json', (req, res) => {
   addonInterface.get(req.params).then(resp => {
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(resp));
